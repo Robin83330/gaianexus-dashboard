@@ -15,6 +15,20 @@ import pydeck as pdk
 from datetime import datetime as dt, timedelta
 from tensorflow.keras.models import load_model
 
+# === TÉLÉCHARGEMENT AUTOMATIQUE DES MODÈLES DEPUIS GOOGLE DRIVE ===
+import gdown
+
+DRIVE_MODEL_ID  = "1HyxFdBM5cSltYRE-Dgg24Gef-4u0o7Zm"
+DRIVE_SCALER_ID = "1Hqa1mwFYucRmrQUtQ7XEYQdZjQDOisq9"
+
+def download_models():
+    os.makedirs("models", exist_ok=True)
+    if not os.path.exists("models/modele_LSTM_v2.h5"):
+        gdown.download(f"https://drive.google.com/uc?id={DRIVE_MODEL_ID}", "models/modele_LSTM_v2.h5", quiet=False)
+    if not os.path.exists("models/scaler_v2.pkl"):
+        gdown.download(f"https://drive.google.com/uc?id={DRIVE_SCALER_ID}", "models/scaler_v2.pkl", quiet=False)
+
+download_models()
 # =====================================================
 # === CONFIGURATION ===
 # =====================================================
