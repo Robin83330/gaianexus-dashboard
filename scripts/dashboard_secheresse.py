@@ -233,6 +233,8 @@ st.pyplot(fig)
 st.markdown("---")
 st.markdown("ℹ️ **Comment lire ce tableau ?** L'IA analyse les 30 derniers jours de données réelles et prédit le niveau de sécheresse pour les 30 prochains jours.")
 st.subheader("🔮 Prédictions IA (30 jours)")
+st.info("ℹ️ Les 7-10 premiers jours sont les plus fiables. Au-delà, les prédictions reflètent les tendances saisonnières historiques de votre commune.")
+st.caption("⚠️ Précision indicative au-delà de 15 jours — cohérent avec les standards météorologiques professionnels.")
 
 # Construction de la séquence à partir des données réelles
 try:
