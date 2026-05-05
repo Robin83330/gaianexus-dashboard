@@ -289,9 +289,8 @@ elif option == "Précipitations":
 elif option == "Humidité":
     st.line_chart(df_meteo["Humidite_sol"], height=250)
 
-# =====================================================
 # === CARTE ===
-# =====================================================
+import requests as req_geo
 
 st.subheader("🗺️ Zones surveillées")
 
@@ -303,25 +302,88 @@ color_map = {
     "Modérée": [255, 165, 0, 160],
     "Sévère":  [255, 0, 0, 160],
 }
-zone_color = color_map.get(dominant_label, [255, 255, 255, 160])
 
-layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=pd.DataFrame({
-        "lat":    [lat],
-        "lon":    [lon],
-        "niveau": [f"Zone surveillée – Niveau dominant : {dominant_label}"]
-    }),
-    get_position=["lon", "lat"],
-    get_color=zone_color,
-    get_radius=12000,
-    pickable=True,
-)
-st.pydeck_chart(pdk.Deck(
-    layers=[layer],
-    initial_view_state=pdk.ViewState(latitude=lat, longitude=lon, zoom=10, pitch=0),
-    tooltip={"text": "{niveau}"}
-))
+@st.cache_data(ttl=86400)
+def get_commune_geojson(nom_commune):
+    """Récupère le contour GeoJSON exact de la commune via l'API officielle française."""
+    try:
+        url = f"https://geo.api.gouv.fr/communes?nom={nom_commune}&fields=contour&format=geojson&geometry=contour"
+        r = req_geo.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        if data["features"]:
+            return data["features"][0]
+        return None
+    except Exception:
+        return None
+
+# Construire les features GeoJSON pour toutes les communes autorisées
+features = []
+for com in communes_autorisees:
+    if com not in COMMUNES:
+        continue
+    feature = get_commune_geojson(com)
+    if feature is None:
+        continue
+
+    # Prédiction pour cette commune — pour l'instant on utilise
+    # la prédiction globale (même séquence). En V2 on fera une
+    # prédiction par commune individuellement.
+    niveau = dominant_label
+    couleur = color_map.get(niveau, [255, 255, 255, 160])
+
+    feature["properties"]["niveau"] = niveau
+    feature["properties"]["commune"] = com
+    feature["properties"]["fill_color"] = couleur
+    features.append(feature)
+
+if features:
+    geojson_data = {"type": "FeatureCollection", "features": features}
+
+    geojson_layer = pdk.Layer(
+        "GeoJsonLayer",
+        data=geojson_data,
+        pickable=True,
+        stroked=True,
+        filled=True,
+        get_fill_color="properties.fill_color",
+        get_line_color=[255, 255, 255, 200],
+        line_width_min_pixels=2,
+    )
+
+    # Centrer la vue sur la commune sélectionnée
+    view_state = pdk.ViewState(
+        latitude=COMMUNES[commune]["lat"],
+        longitude=COMMUNES[commune]["lon"],
+        zoom=11,
+        pitch=0
+    )
+
+    st.pydeck_chart(pdk.Deck(
+        layers=[geojson_layer],
+        initial_view_state=view_state,
+        tooltip={"text": "🏘️ {commune}\n⚠️ Niveau : {niveau}"}
+    ))
+else:
+    # Fallback si l'API geo est indisponible
+    st.warning("⚠️ Contours géographiques temporairement indisponibles.")
+    zone_color = color_map.get(dominant_label, [255, 255, 255, 160])
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=pd.DataFrame({
+            "lat": [lat], "lon": [lon],
+            "niveau": [f"Zone surveillée – Niveau : {dominant_label}"]
+        }),
+        get_position=["lon", "lat"],
+        get_color=zone_color,
+        get_radius=3500,
+        pickable=True,
+    )
+    st.pydeck_chart(pdk.Deck(
+        layers=[layer],
+        initial_view_state=pdk.ViewState(latitude=lat, longitude=lon, zoom=12, pitch=0),
+        tooltip={"text": "{niveau}"}
+    ))
 
 # =====================================================
 # === GRAPHIQUE RÉPARTITION ===
