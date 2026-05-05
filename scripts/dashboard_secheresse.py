@@ -11,6 +11,7 @@ import requests
 import streamlit as st
 import pydeck as pdk
 import datetime
+from users import USERS, TOUTES_LES_COMMUNES
 from datetime import datetime as dt, timedelta
 from tensorflow.keras.models import load_model
 from auth import login_page, logout, check_auth, get_communes_autorisees, get_role, get_nom
@@ -406,6 +407,37 @@ st.pyplot(fig2)
 # =====================================================
 # === EXPORT PDF ===
 # =====================================================
+# === ALERTES EMAIL AUTOMATIQUES ===
+from alertes_email import verifier_alerte_severe, envoyer_alerte_severe
+
+# Récupère l'email de l'utilisateur connecté
+email_user = USERS.get(st.session_state.get("identifiant", ""), {}).get("email", None)
+
+if email_user:
+    alerte_necessaire = verifier_alerte_severe(predicted_classes, CATEGORIES, jours=7)
+    
+    if alerte_necessaire:
+        st.markdown("---")
+        st.error("🔴 **ALERTE — Sécheresse Sévère détectée dans les 7 prochains jours !**")
+        
+        col_alerte1, col_alerte2 = st.columns([2, 1])
+        with col_alerte1:
+            st.warning("⚠️ Notre IA a détecté un risque de sécheresse sévère. Une alerte email peut être envoyée automatiquement à votre commune.")
+        with col_alerte2:
+            if st.button("📧 Envoyer l'alerte email maintenant"):
+                pdf_path = "pdf/rapport_secheresse_complet.pdf"
+                succes = envoyer_alerte_severe(
+                    email_destinataire=email_user,
+                    nom_commune=commune,
+                    nom_organisation=nom,
+                    predicted_classes=predicted_classes,
+                    categories=CATEGORIES,
+                    pdf_path=pdf_path if os.path.exists(pdf_path) else None
+                )
+                if succes:
+                    st.success(f"✅ Alerte envoyée à {email_user} !")
+                else:
+                    st.error("❌ Erreur lors de l'envoi — vérifiez la configuration email.")
 
 st.markdown("---")
 st.subheader("📄 Export PDF des prédictions IA")

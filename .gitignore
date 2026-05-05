@@ -6,3 +6,4 @@ data/
 *.h5
 *.pkl
 *.npy
+scripts/alertes_email.py
