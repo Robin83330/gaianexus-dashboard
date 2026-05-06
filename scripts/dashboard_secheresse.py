@@ -439,6 +439,32 @@ if email_user:
                 else:
                     st.error("❌ Erreur lors de l'envoi — vérifiez la configuration email.")
 
+# === RAPPORT ÉLU / DÉCIDEUR ===
+from generation_pdf_elu import generate_pdf_elu
+
+rapport_elu_actif = USERS.get(st.session_state.get("identifiant", ""), {}).get("rapport_elu", False)
+
+if rapport_elu_actif:
+    st.markdown("---")
+    st.subheader("🏛️ Rapport Élu / Décideur")
+    st.caption("Version 1 page synthétique pour maires et élus.")
+    if st.button("📤 Générer le Rapport Élu"):
+        try:
+            os.makedirs("pdf/historique", exist_ok=True)
+            generate_pdf_elu(preds, predicted_classes, CATEGORIES,
+                             commune_name=commune, nom_organisation=nom, role=role,
+                             identifiant=st.session_state.get("identifiant", ""))
+            ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            shutil.copy("pdf/rapport_elu.pdf",
+                        f"pdf/historique/rapport_elu_{ts}.pdf")
+            st.success("✅ Rapport Élu généré !")
+        except Exception as e:
+            st.error(f"❌ Erreur : {e}")
+    if os.path.exists("pdf/rapport_elu.pdf"):
+        with open("pdf/rapport_elu.pdf", "rb") as f:
+            st.download_button("📥 Télécharger le Rapport Élu", data=f,
+                               file_name="rapport_elu.pdf")
+            
 st.markdown("---")
 st.subheader("📄 Export PDF des prédictions IA")
 

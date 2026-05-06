@@ -19,6 +19,7 @@ USERS = {
         "nom": "Robin Arliaud – Gaïa Nexus",
         "communes": TOUTES_LES_COMMUNES,
         "email": "founder.gaianexus@gmail.com",
+        "rapport_elu": True,
     },
 
     # ========== COMPTE TEST ==========
@@ -27,7 +28,8 @@ USERS = {
         "role": "mvp",
         "nom": "Mairie de Six-Fours-les-Plages",
         "communes": ["Six-Fours-les-Plages"],
-        "email": "founder.gaianexus@gmail.com",  # ton email pour tester
+        "email": "founder.gaianexus@gmail.com",
+        "rapport_elu": False,
     },
 
     # ========== MODÈLE MVP (1 commune) ==========
