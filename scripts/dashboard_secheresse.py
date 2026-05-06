@@ -451,7 +451,8 @@ with col1:
     if st.button("📤 Générer le PDF Résumé (5 préd.)"):
         try:
             os.makedirs("pdf/historique", exist_ok=True)
-            generate_pdf(preds, predicted_classes, CATEGORIES, mode="resume")
+            generate_pdf(preds, predicted_classes, CATEGORIES, mode="resume",
+                         commune_name=commune, nom_organisation=nom, role=role)
             ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             shutil.copy("pdf/rapport_secheresse_resume.pdf",
                         f"pdf/historique/rapport_resume_{ts}.pdf")
@@ -467,7 +468,8 @@ with col2:
     if st.button("📤 Générer le PDF Complet (30 préd.)"):
         try:
             os.makedirs("pdf/historique", exist_ok=True)
-            generate_pdf_complet(preds, predicted_classes, CATEGORIES, mode="complet")
+            generate_pdf_complet(preds, predicted_classes, CATEGORIES, mode="complet",
+                                 commune_name=commune, nom_organisation=nom, role=role)
             ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             shutil.copy("pdf/rapport_secheresse_complet.pdf",
                         f"pdf/historique/rapport_complet_{ts}.pdf")

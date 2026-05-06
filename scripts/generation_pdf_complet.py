@@ -15,7 +15,7 @@ graph_path = "images/repartition_graphique.png"
 logo_path = "images/logo.png"
 pdf_folder = "pdf"
 
-def generate_pdf(preds, predicted_classes, categories, mode="complet"):
+def generate_pdf(preds, predicted_classes, categories, mode="complet", commune_name="", nom_organisation="", role=""):
     os.makedirs(pdf_folder, exist_ok=True)
     date_str = datetime.datetime.now().strftime("%d/%m/%Y")
 
@@ -54,14 +54,18 @@ def generate_pdf(preds, predicted_classes, categories, mode="complet"):
     c.setFont("Helvetica-Bold", 14)
     c.drawCentredString(width / 2, height - 50, "■ Rapport IA Sécheresse – GAÏA NEXUS")
     c.setFont("Helvetica", 10)
+    offset = 32 if commune_name else 0
     c.drawString(40, height - 70, f"Date : {date_str}")
     c.drawString(40, height - 85, "Région analysée : PACA (Zoom Var)")
     c.drawString(40, height - 100, "Modèle IA : LSTM multiclass")
-    c.line(40, height - 110, width - 40, height - 110)
+    if commune_name:
+        c.drawString(40, height - 115, f"Commune : {commune_name}")
+        c.drawString(40, height - 130, f"Organisation : {nom_organisation}  |  Profil : {role.upper()}")
+    c.line(40, height - 110 - offset, width - 40, height - 110 - offset)
 
     # 📋 Tableau
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(40, height - 140, "■ Prédictions IA")
+    c.drawString(40, height - 140 - offset, "■ Prédictions IA")
     styles = getSampleStyleSheet()
     data = [["Date", "Prédiction", "Confiance (%)"]] + df.iloc[:30].values.tolist()
     table = Table(data, colWidths=[90, 100, 100])

@@ -14,7 +14,7 @@ graph_path = "images/repartition_graphique.png"
 logo_path = "images/logo.png"
 pdf_folder = "pdf"
 
-def generate_pdf(preds, predicted_classes, categories, mode="resume"):
+def generate_pdf(preds, predicted_classes, categories, mode="resume", commune_name="", nom_organisation="", role=""):
     os.makedirs(pdf_folder, exist_ok=True)
     date_str = datetime.datetime.now().strftime("%d/%m/%Y")
 
@@ -46,18 +46,22 @@ def generate_pdf(preds, predicted_classes, categories, mode="resume"):
     if os.path.exists(logo_path):
         c.drawImage(logo_path, width - 140, height - 100, width=80, preserveAspectRatio=True, mask='auto')
 
-    # 📄 En-tête
+   # 📄 En-tête
     c.setFont("Helvetica-Bold", 14)
-    c.drawCentredString(width / 2, height - 50, "📊 Rapport IA Sécheresse – GAÏA NEXUS")
+    c.drawCentredString(width / 2, height - 50, "■ Rapport IA Sécheresse – GAÏA NEXUS")
     c.setFont("Helvetica", 10)
+    offset = 32 if commune_name else 0
     c.drawString(40, height - 70, f"Date : {date_str}")
     c.drawString(40, height - 85, "Région analysée : PACA (Zoom Var)")
     c.drawString(40, height - 100, "Modèle IA : LSTM multiclass")
-    c.line(40, height - 110, width - 40, height - 110)
+    if commune_name:
+        c.drawString(40, height - 115, f"Commune : {commune_name}")
+        c.drawString(40, height - 130, f"Organisation : {nom_organisation}  |  Profil : {role.upper()}")
+    c.line(40, height - 110 - offset, width - 40, height - 110 - offset)
 
-    # 📋 Tableau
+   # 📋 Tableau
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(40, height - 130, "■ Prédictions IA")
+    c.drawString(40, height - 130 - offset, "■ Prédictions IA")
     n = 5 if mode == "resume" else min(100, len(df))
     data = [["Date", "Prédiction", "Confiance (%)"]] + df.iloc[:n].values.tolist()
     table = Table(data, colWidths=[70, 100, 100])
@@ -69,7 +73,7 @@ def generate_pdf(preds, predicted_classes, categories, mode="resume"):
         ('FONTSIZE', (0,0), (-1,-1), 9),
     ]))
     table.wrapOn(c, width, height)
-    table_height = height - 180 - (n * 15)
+    table_height = height - 180 - offset - (n * 15)
     table.drawOn(c, 40, table_height)
 
     # ℹ️ Légende Confiance (sous le tableau)
